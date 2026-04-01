@@ -1,6 +1,6 @@
+import logging
 import time
 import uuid
-import logging
 from collections.abc import Awaitable, Callable
 
 import structlog
@@ -14,34 +14,32 @@ settings = get_settings()
 
 def setup_logging(log_level: str = "INFO", debug: bool = False) -> None:
     """Configure structlog for JSON (production) or colored console (debug)."""
+    level = logging.getLevelName(log_level.upper())
+
     shared_processors: list[structlog.types.Processor] = [
         structlog.contextvars.merge_contextvars,
-        structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.StackInfoRenderer(),
+        structlog.processors.ExceptionRenderer(),
     ]
 
-    if debug:
-        renderer: structlog.types.Processor = structlog.dev.ConsoleRenderer(colors=True)
-    else:
-        renderer = structlog.processors.JSONRenderer()
+    renderer: structlog.types.Processor = (
+        structlog.dev.ConsoleRenderer(colors=True)
+        if debug
+        else structlog.processors.JSONRenderer()
+    )
 
     structlog.configure(
         processors=shared_processors + [renderer],
-        wrapper_class=structlog.make_filtering_bound_logger(
-            logging.getLevelName(log_level.upper())
-        ),
+        wrapper_class=structlog.make_filtering_bound_logger(level),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),
         cache_logger_on_first_use=True,
     )
 
-    # Also configure stdlib logging so uvicorn/fastapi logs go through structlog
-    logging.basicConfig(
-        format="%(message)s",
-        level=logging.getLevelName(log_level.upper()),
-    )
+    # Route stdlib logging (uvicorn, httpx, etc.) through the same level
+    logging.basicConfig(format="%(message)s", level=level)
 
 
 def get_logger(name: str = __name__) -> structlog.BoundLogger:
@@ -49,7 +47,7 @@ def get_logger(name: str = __name__) -> structlog.BoundLogger:
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
-    """Logs every request with method, path, status, duration, and request_id."""
+    """Logs every request: method, path, status code, duration, request_id."""
 
     async def dispatch(
         self,
@@ -68,6 +66,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         log.info("request.start")
 
         start = time.perf_counter()
+        response: Response
         try:
             response = await call_next(request)
         except Exception:

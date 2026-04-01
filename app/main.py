@@ -39,11 +39,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         debug=settings.debug,
     )
 
-    await init_rate_limiter()
-    log.info("Rate limiter ready", redis_url=settings.redis_url)
+    try:
+        await init_rate_limiter()
+        log.info("Rate limiter ready", redis_url=settings.redis_url)
+    except Exception as exc:
+        log.warning("Rate limiter unavailable (Redis not reachable)", error=str(exc))
 
-    await get_agent()
-    log.info("DeepAgent warmed up and ready")
+    try:
+        await get_agent()
+        log.info("DeepAgent warmed up and ready")
+    except Exception as exc:
+        log.warning("DeepAgent warmup skipped (Ollama not reachable)", error=str(exc))
 
     yield
 

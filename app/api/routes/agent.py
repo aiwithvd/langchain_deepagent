@@ -21,7 +21,7 @@ from sse_starlette.sse import EventSourceResponse
 from app.agent.factory import get_agent
 from app.core.config import get_settings
 from app.core.logging import get_logger
-from app.core.rate_limit import agent_rate_limiter
+from app.core.rate_limit import get_rate_limiter
 from app.models.schemas import AgentRequest, AgentResponse, ToolCallLog
 
 router = APIRouter()
@@ -84,7 +84,7 @@ def _extract_response(result: dict, session_id: str, query: str, elapsed: float)
     "/agent/run",
     response_model=AgentResponse,
     summary="Run agent (blocking)",
-    dependencies=[Depends(agent_rate_limiter())],
+    dependencies=[Depends(get_rate_limiter())],
 )
 async def run_agent(request: AgentRequest) -> AgentResponse:
     """
@@ -129,7 +129,7 @@ async def run_agent(request: AgentRequest) -> AgentResponse:
 @router.get(
     "/agent/stream",
     summary="Run agent (SSE streaming)",
-    dependencies=[Depends(agent_rate_limiter())],
+    dependencies=[Depends(get_rate_limiter())],
     responses={
         200: {
             "description": "Server-Sent Events stream",
