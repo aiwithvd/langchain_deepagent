@@ -37,7 +37,7 @@ COPY --from=builder /install /usr/local
 
 # Copy application source and skills
 COPY app/            ./app/
-COPY .deepagents/    ./.deepagents/
+COPY deepagents_skills/ ./deepagents_skills/
 COPY pyproject.toml  ./
 
 RUN chown -R appuser:appuser /app

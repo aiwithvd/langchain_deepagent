@@ -322,7 +322,7 @@ curl -X POST http://localhost:8000/api/v1/agent/run \
 Each skill exists as both a **Python `@tool`** and a **`SKILL.md`** instruction file the agent discovers at runtime.
 
 ### `think`
-**Files**: `.deepagents/skills/think/SKILL.md` · `app/agent/tools/think.py`
+**Files**: `deepagents_skills/think/SKILL.md` · `app/agent/tools/think.py`
 
 Structured chain-of-thought reasoning. Used before complex decisions, trade-off analysis, or when multiple approaches are possible.
 
@@ -330,7 +330,7 @@ Structured chain-of-thought reasoning. Used before complex decisions, trade-off 
 - **Output**: `[Question]` → `[Reasoning steps]` → `[Conclusion]`
 
 ### `plan`
-**Files**: `.deepagents/skills/plan/SKILL.md` · `app/agent/tools/plan.py`
+**Files**: `deepagents_skills/plan/SKILL.md` · `app/agent/tools/plan.py`
 
 Decomposes a high-level goal into ordered, atomic sub-tasks with assigned tools and success criteria.
 
@@ -338,7 +338,7 @@ Decomposes a high-level goal into ordered, atomic sub-tasks with assigned tools 
 - **Output**: Numbered markdown plan with tool assignments
 
 ### `web_search`
-**Files**: `.deepagents/skills/web_search/SKILL.md` · `app/agent/tools/web_search.py`
+**Files**: `deepagents_skills/web_search/SKILL.md` · `app/agent/tools/web_search.py`
 
 Real-time DuckDuckGo search (no API key). Runs in a background thread to avoid blocking the async event loop.
 
@@ -346,7 +346,7 @@ Real-time DuckDuckGo search (no API key). Runs in a background thread to avoid b
 - **Output**: Formatted results with title, URL, snippet
 
 ### `write_report`
-**Files**: `.deepagents/skills/write_report/SKILL.md` · `app/agent/tools/write_report.py`
+**Files**: `deepagents_skills/write_report/SKILL.md` · `app/agent/tools/write_report.py`
 
 Pure formatting skill — wraps research findings in a professional markdown template with timestamp.
 
@@ -367,7 +367,7 @@ All settings are read from environment variables (or `.env`). Copy `.env.example
 | `OLLAMA_MODEL` | `llama3.2:3b` | Ollama model name |
 | `OLLAMA_TEMPERATURE` | `0.0` | LLM sampling temperature |
 | `AGENT_RECURSION_LIMIT` | `25` | Max LangGraph iterations per request |
-| `SKILLS_DIR` | `.deepagents/skills` | Path to skills directory |
+| `SKILLS_DIR` | `deepagents_skills` | Path to skills directory |
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL |
 | `RATE_LIMIT_REQUESTS` | `10` | Max requests per window per IP |
 | `RATE_LIMIT_SECONDS` | `60` | Rate limit window in seconds |
@@ -379,12 +379,11 @@ All settings are read from environment variables (or `.env`). Copy `.env.example
 
 ```
 langchain_deepagent/
-├── .deepagents/
-│   └── skills/
-│       ├── think/SKILL.md         # Chain-of-thought instructions
-│       ├── plan/SKILL.md          # Planning instructions
-│       ├── web_search/SKILL.md    # Web search usage guide
-│       └── write_report/SKILL.md  # Report format spec
+├── deepagents_skills/
+│   ├── think/SKILL.md             # Chain-of-thought instructions
+│   ├── plan/SKILL.md              # Planning instructions
+│   ├── web_search/SKILL.md        # Web search usage guide
+│   └── write_report/SKILL.md      # Report format spec
 │
 ├── app/
 │   ├── main.py                    # FastAPI app factory + lifespan
@@ -441,7 +440,7 @@ pytest --cov=app --cov-report=term-missing
 
 ### Adding a New Skill
 
-1. Create `.deepagents/skills/<name>/SKILL.md` with YAML frontmatter + instructions
+1. Create `deepagents_skills/<name>/SKILL.md` with YAML frontmatter + instructions
 2. Create `app/agent/tools/<name>.py` with a `@tool` async function
 3. Add the tool to `ALL_TOOLS` in `app/agent/tools/__init__.py`
 4. Restart the app — the agent discovers the new `SKILL.md` automatically

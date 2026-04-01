@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # ── Agent ─────────────────────────────────────────────────
     agent_recursion_limit: int = 25
-    skills_dir: str = ".deepagents/skills"
+    skills_dir: str = "deepagents_skills"
 
     # ── Redis ─────────────────────────────────────────────────
     redis_url: str = "redis://localhost:6379/0"
